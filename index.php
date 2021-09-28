@@ -35,6 +35,7 @@ if (!empty($_POST["btn-submit"])) {
     }
 
     if (empty($error_message)) {
+/* コメントアウトする
 //ファイルかURLをオープンする。（書き込みモード）
         if ($file_handle = fopen(FILENAME, "a")) {
 
@@ -52,6 +53,7 @@ if (!empty($_POST["btn-submit"])) {
 
             $success_message = "メッセージを書き込みました。";
         }
+        */
     }
 }
 
