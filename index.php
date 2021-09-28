@@ -15,10 +15,29 @@ $message_array = array();
 $success_message = null;
 $error_message = array();
 $clean = array();
+$pdo = null;
+$stmt = null;
+$res = null;
+$option = null;
+
+//PDO(PHP Data Objects)
+//データベースに接続（読み取りでも書き取りでも）
+try {
+    //セキュリティ対策用
+    $option = array(
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //接続時以外でもエラーを吐くようにする
+        PDO::MYSQL_ATTR_MULTI_STATEMENTS => false, //マルチクエリを不可にする
+    );
+    $pdo = new PDO("mysql:charset=UTF8;dbname=board;host=localhost", "root");
+} catch (PDOException $e) {
+    //接続エラーのときエラー内容を表示する。
+    $error_message[] = $e->getMessage();
+}
 
 //もし、書き込まれたら
 if (!empty($_POST["btn-submit"])) {
 
+    //ここから👇はinputに文字が打ち込まれたかどうか、と、文字データのサニタイズ処理。
     if (empty($_POST["view-name-for-input-identify"])) {
         $error_message[] = "表示名を入力してください。";
     } else {
@@ -34,26 +53,38 @@ if (!empty($_POST["btn-submit"])) {
         $clean["message"] = preg_replace('/\n|\r|\r\n/', "<br>", $clean["message"]);
     }
 
+    //入力された文字情報にエラーがなければ、、
     if (empty($error_message)) {
 /* コメントアウトする
 //ファイルかURLをオープンする。（書き込みモード）
-        if ($file_handle = fopen(FILENAME, "a")) {
+if ($file_handle = fopen(FILENAME, "a")) {
 
-            //書き込んだ日時を取得
-            $current_date = date("Y-m-d H:i:s");
+//書き込んだ日時を取得
+$current_date = date("Y-m-d H:i:s");
 
-            //書き込むデータの作成
-            $data = "'" . $clean["view-name"] . "'" . "," . "'" . $clean["message"] . "'" . "," . "'" . $current_date . "'" . "\n";
+//書き込むデータの作成
+$data = "'" . $clean["view-name"] . "'" . "," . "'" . $clean["message"] . "'" . "," . "'" . $current_date . "'" . "\n";
 
-            //データを書き込む。第一引数にはファイルポインターリソースが必要。
-            fwrite($file_handle, $data);
+//データを書き込む。第一引数にはファイルポインターリソースが必要。
+fwrite($file_handle, $data);
 
-            //安全に閉じる。
-            fclose($file_handle);
+//安全に閉じる。
+fclose($file_handle);
 
-            $success_message = "メッセージを書き込みました。";
-        }
-        */
+$success_message = "メッセージを書き込みました。";
+}
+ここまでコメントアウト*/
+
+        //データベースに登録する。
+        $current_date = date("Y-m-d H:i:s");
+
+        //SQL作成(SQL文：SQLにデータを登録してね！っていう命令文)
+        $stmet = $pdo->prepare("INSERT INTO message (view_name, message, post_date) VALUES ( :view_name, :message, :current_date)"); //PDOStatementオブジェクト
+
+        //値をセット（そのSQL文の中に変数をバインド、結びつける。バインド変数。）
+        $stmt->bindParam(":view-name", $clean["view-name"], PDO::PARAM_STR);
+        $stmt->bindParam(":message", $clean["message"], PDO::PARAM_STR);
+        $stmt->bindParam(":current_date", $current_date, PDO::PARAM_STR);
     }
 }
 
