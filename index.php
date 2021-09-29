@@ -1,20 +1,19 @@
 <?php
-//メッセージを保存するファイルパスを指定
-define("FILENAME", "./message.txt");
+//データベース接続情報
+define("DB_NAME", "board");
+define("DB_HOST", "localhost");
+define("DB_USER", "root");
+define("DB_PASS", "");
 
 //タイムゾーン設定
 date_default_timezone_set("Asia/Tokyo");
 
 //変数の初期化
 $current_date = null;
-$data = null;
-$file_handle = null;
-$split_data = null;
 $message = array();
 $message_array = array();
 $success_message = null;
 $error_message = array();
-$clean = array();
 $pdo = null;
 $stmt = null;
 $res = null;
@@ -28,7 +27,7 @@ try {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, //接続時以外でもエラーを吐くようにする
         PDO::MYSQL_ATTR_MULTI_STATEMENTS => false, //マルチクエリを不可にする
     );
-    $pdo = new PDO("mysql:charset=UTF8;dbname=board;host=localhost", "root", "", $option);
+    $pdo = new PDO("mysql:charset=UTF8;dbname=" . DB_NAME . ";host=" . DB_HOST, DB_USER, DB_PASS, $option);
 } catch (PDOException $e) {
     //接続エラーのときエラー内容を表示する。
     $error_message[] = $e->getMessage();
@@ -52,25 +51,6 @@ if (!empty($_POST["btn-submit"])) {
 
     //入力された文字情報にエラーがなければ、、
     if (empty($error_message)) {
-/* コメントアウトする
-//ファイルかURLをオープンする。（書き込みモード）
-if ($file_handle = fopen(FILENAME, "a")) {
-
-//書き込んだ日時を取得
-$current_date = date("Y-m-d H:i:s");
-
-//書き込むデータの作成
-$data = "'" . $clean["view-name"] . "'" . "," . "'" . $clean["message"] . "'" . "," . "'" . $current_date . "'" . "\n";
-
-//データを書き込む。第一引数にはファイルポインターリソースが必要。
-fwrite($file_handle, $data);
-
-//安全に閉じる。
-fclose($file_handle);
-
-$success_message = "メッセージを書き込みました。";
-}
-ここまでコメントアウト*/
 
         //データベースに登録する。
         $current_date = date("Y-m-d H:i:s");
@@ -109,32 +89,13 @@ $success_message = "メッセージを書き込みました。";
 }
 
 //データベースからデータを取得する
-if(empty($error_message)) {
+if (empty($error_message)) {
     $spl = "SELECT view_name, message, post_date FROM message ORDER BY post_date DESC";
     $message_array = $pdo->query($spl);
 }
 
 //データベース接続を閉じる
 $pdo = null;
-
-/* コメントアウトする
-//データが書かれたファイルを読み込む
-if ($file_handle = fopen(FILENAME, "r")) {
-//ファイルに書いてるデータを１行ずつ取得する。できたらtrueを返す。
-while ($data = fgets($file_handle)) {
-$split_data = preg_split('/\'/', $data);
-
-$message = array(
-"view_name" => $split_data[1], //表示名
-"message" => $split_data[3], //一言メッセージ
-"post_date" => $split_data[5], //投稿日時
-);
-array_unshift($message_array, $message);
-}
-//ファイルを閉じる
-fclose($file_handle);
-}
- */
 ?>
 
 
@@ -189,10 +150,10 @@ fclose($file_handle);
             <?php foreach ($message_array as $value): ?>
                 <article>
                     <div class="info">
-                        <h2><?php echo $value["view_name"] ?></h2>
+                        <h2><?php echo htmlspecialchars($value["view_name"]) ?></h2>
                         <time><?php echo date("Y年m月d日 H:i", strtotime($value["post_date"])) ?></time>
                     </div>
-                    <p><?php echo nl2br($value['message']) ?></p>
+                    <p><?php echo nl2br(htmlspecialchars($value['message'])) ?></p>
                 </article>
             <?php endforeach;?>
             <?php endif;?>
