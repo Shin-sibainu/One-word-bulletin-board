@@ -75,11 +75,10 @@ $success_message = "メッセージを書き込みました。";
         //データベースに登録する。
         $current_date = date("Y-m-d H:i:s");
 
-        //トランザクション開始
+        //トランザクション開始(処理を１つにまとめる。まとめると途中でエラーが出ても前まで戻せる。)
         $pdo->beginTransaction();
 
         try {
-
             //SQL作成(SQL文：SQLにデータを登録してね！っていう命令文)
             $stmt = $pdo->prepare("INSERT INTO message (view_name, message, post_date) VALUES ( :view_name, :message, :current_date)"); //PDOStatementオブジェクト
 
@@ -109,25 +108,33 @@ $success_message = "メッセージを書き込みました。";
     }
 }
 
+//データベースからデータを取得する
+if(empty($error_message)) {
+    $spl = "SELECT view_name, message, post_date FROM message ORDER BY post_date DESC";
+    $message_array = $pdo->query($spl);
+}
+
 //データベース接続を閉じる
 $pdo = null;
 
+/* コメントアウトする
 //データが書かれたファイルを読み込む
 if ($file_handle = fopen(FILENAME, "r")) {
-    //ファイルに書いてるデータを１行ずつ取得する。できたらtrueを返す。
-    while ($data = fgets($file_handle)) {
-        $split_data = preg_split('/\'/', $data);
+//ファイルに書いてるデータを１行ずつ取得する。できたらtrueを返す。
+while ($data = fgets($file_handle)) {
+$split_data = preg_split('/\'/', $data);
 
-        $message = array(
-            "view_name" => $split_data[1], //表示名
-            "message" => $split_data[3], //一言メッセージ
-            "post_date" => $split_data[5], //投稿日時
-        );
-        array_unshift($message_array, $message);
-    }
-    //ファイルを閉じる
-    fclose($file_handle);
+$message = array(
+"view_name" => $split_data[1], //表示名
+"message" => $split_data[3], //一言メッセージ
+"post_date" => $split_data[5], //投稿日時
+);
+array_unshift($message_array, $message);
 }
+//ファイルを閉じる
+fclose($file_handle);
+}
+ */
 ?>
 
 
@@ -185,7 +192,7 @@ if ($file_handle = fopen(FILENAME, "r")) {
                         <h2><?php echo $value["view_name"] ?></h2>
                         <time><?php echo date("Y年m月d日 H:i", strtotime($value["post_date"])) ?></time>
                     </div>
-                    <p><?php echo $value["message"] ?></p>
+                    <p><?php echo nl2br($value['message']) ?></p>
                 </article>
             <?php endforeach;?>
             <?php endif;?>
