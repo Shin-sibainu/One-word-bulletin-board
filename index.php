@@ -19,6 +19,9 @@ $stmt = null;
 $res = null;
 $option = null;
 
+//セッションのスタート
+session_start();
+
 //PDO(PHP Data Objects)
 //データベースに接続（読み取りでも書き取りでも）
 try {
@@ -43,6 +46,8 @@ if (!empty($_POST["btn-submit"])) {
     //表示名のチェック
     if (empty($view_name)) {
         $error_message[] = "表示名を入力してください。";
+    } else {
+        $_SESSION["view-name"] = $view_name;
     }
 
     if (empty($message)) {
@@ -129,7 +134,11 @@ $pdo = null;
     <form method="post" action="">
         <div>
             <label for="view-name">表示名</label>
-            <input type="text" id="view-name" name="view-name-for-input-identify">
+            <input type="text" id="view-name" name="view-name-for-input-identify" value=<?php
+                if(!empty($_SESSION["view-name"])) {
+                    echo htmlspecialchars($_SESSION["view-name"], ENT_QUOTES, "UTF-8");
+                }
+            ?>>
         </div>
         <div>
             <label for="message">ひと言メッセージ</label>
