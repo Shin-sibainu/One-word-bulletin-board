@@ -41,11 +41,11 @@ try {
 
 //もし、ログインボタンが押されたら
 if (!empty($_POST["btn-submit"])) {
-    if($_SESSION["admin-login"] && $_POST["admin-password"] === PASSWORD) {
-    $_SESSION["admin-login"] = true;
-} else {
-    $error_message[] = "ログインに失敗しました。";
-}
+    if ($_POST["admin-password"] === PASSWORD) {
+        $_SESSION["admin-login"] = true;
+    } else {
+        $error_message[] = "ログインに失敗しました。";
+    }
 }
 
 //データベースからデータを取得する
@@ -82,6 +82,10 @@ $pdo = null;
 
     <!-- ログイン情報があれば、データたちを表示する。 -->
 <?php if (!empty($_SESSION["admin-login"]) && $_SESSION["admin-login"] === true): ?>
+
+    <form action="./download.php" method="get">
+        <input type="submit" value="ダウンロード" name="btn-download">
+    </form>
 
     <!-- ひと言表示用 -->
     <section>
